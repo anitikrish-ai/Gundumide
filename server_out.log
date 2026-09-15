@@ -1,0 +1,5 @@
+
+> gundam-dev@1.0.0 server
+> npx tsx server/index.ts
+
+[GundamDev Production Backend Engine] Relational DB initialized on port 5000
