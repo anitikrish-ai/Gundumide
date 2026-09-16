@@ -1,1 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
+
+# This app is a single-page app with no client-side routes of its own, but
+# this fallback is kept so a hard refresh / direct link never 404s.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# IMPORTANT - backend is deployed separately (e.g. on Render):
+# This site only hosts the static frontend. All "/api/*" calls are made to
+# whatever VITE_API_URL is set to at build time (Netlify -> Site settings ->
+# Environment variables), e.g.:
+#   VITE_API_URL = https://your-backend.onrender.com/api
+# If VITE_API_URL is not set, the app calls relative "/api/..." paths, which
+# will 404 on Netlify since there is no backend here. See SETUP.md.

@@ -116,6 +116,28 @@ Netlify can host the Vite frontend, but the existing Express backend should be d
 
 After deploying the backend, configure API routing so `/api/*` reaches that backend. Keep JWT, database, GitHub, Netlify, and Cloudflare secrets on the server only.
 
+### Connecting the Netlify frontend to the Render (or other) backend
+
+The frontend calls the backend through a single configurable base URL
+(`src/config.ts`, reads `VITE_API_URL`). In Netlify, go to **Site settings →
+Environment variables** and add:
+
+```
+VITE_API_URL=https://your-backend.onrender.com/api
+```
+
+Then trigger a redeploy (this is a build-time value, baked into the static
+bundle, so it only takes effect on the next build). If it's left unset, the
+app falls back to relative `/api/...` requests, which only work when the
+frontend and backend share an origin — not the case for a Netlify + Render
+split.
+
+Also make sure the backend's `GITHUB_CALLBACK_URL` (set on Render) points at
+the Render URL, e.g. `https://your-backend.onrender.com/api/github/callback`,
+and that this exact URL is registered as the callback URL on your GitHub
+OAuth App — a mismatch here is the most common reason "Connect GitHub" fails
+in production even after the API routing above is fixed.
+
 ## 🔐 Environment Variables
 
 Backend secrets are server-side only. Depending on enabled features, the backend may use:
