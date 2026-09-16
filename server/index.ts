@@ -37,6 +37,18 @@ if (!fs.existsSync(WORKSPACES_DIR)) {
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Serve the built frontend (dist/) as static files, if it exists.
+const DIST_DIR = path.join(process.cwd(), 'dist');
+if (fs.existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+} else {
+  // No built frontend present — at least answer GET / with a status check
+  // instead of falling through to the 404 handler below.
+  app.get('/', (req: Request, res: Response) => {
+    res.json({ success: true, message: 'GundamDev API is running' });
+  });
+}
+
 // Multer for upload handling
 const upload = multer({
   dest: path.join(process.cwd(), 'server', 'uploads'),
@@ -867,6 +879,17 @@ app.get('/api/deploy/:projectId/history', authenticateToken, (req: Authenticated
 
 // 8. GLOBAL FALLBACK & ERROR HANDLING
 // ==========================================
+
+// For any non-API GET request, serve the built frontend's index.html
+// (lets client-side routing handle the URL) if it was built.
+app.get(/^(?!\/api).*/, (req: Request, res: Response, next: NextFunction) => {
+  const indexPath = path.join(DIST_DIR, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    next();
+  }
+});
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
