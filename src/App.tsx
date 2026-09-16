@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { WorkspaceProvider } from './context/WorkspaceContext';
+import { MOTION_VARIANTS } from './theme/motion-tokens';
 
 import { Header } from './components/common/Header';
 import { BottomNav } from './components/common/BottomNav';
@@ -32,40 +34,54 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Auth Guard
-  if (!isAuthenticated) {
-    return <AuthView />;
-  }
-
-  // Welcome Animation View
-  if (showWelcome) {
-    return <WelcomeView />;
-  }
-
   return (
-    <div className="min-h-screen bg-[#090a0f] text-slate-100 flex flex-col font-sans">
-      <Header onOpenPublish={() => setIsPublishOpen(true)} />
+    <AnimatePresence mode="wait">
+      {!isAuthenticated ? (
+        // Auth Guard
+        <motion.div key="auth" {...MOTION_VARIANTS.fadeUp}>
+          <AuthView />
+        </motion.div>
+      ) : showWelcome ? (
+        // Welcome Animation View
+        <motion.div key="welcome" {...MOTION_VARIANTS.fadeUp}>
+          <WelcomeView />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="app"
+          {...MOTION_VARIANTS.fadeUp}
+          className="min-h-screen bg-[#090a0f] text-slate-100 flex flex-col font-sans"
+        >
+          <Header onOpenPublish={() => setIsPublishOpen(true)} />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {activeProject ? (
-          <WorkspaceView />
-        ) : (
-          <HomeView
-            onOpenNewProject={() => setIsNewOpen(true)}
-            onOpenImport={() => setIsImportOpen(true)}
-            onOpenGitHubImport={() => setIsGitHubImportOpen(true)}
-          />
-        )}
-      </main>
+          <main className="flex-1 flex flex-col overflow-hidden">
+            <AnimatePresence mode="wait">
+              {activeProject ? (
+                <motion.div key="workspace" {...MOTION_VARIANTS.fadeUp} className="flex-1 flex flex-col overflow-hidden">
+                  <WorkspaceView />
+                </motion.div>
+              ) : (
+                <motion.div key="home" {...MOTION_VARIANTS.fadeUp} className="flex-1 flex flex-col overflow-hidden">
+                  <HomeView
+                    onOpenNewProject={() => setIsNewOpen(true)}
+                    onOpenImport={() => setIsImportOpen(true)}
+                    onOpenGitHubImport={() => setIsGitHubImportOpen(true)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </main>
 
-      <BottomNav />
+          <BottomNav />
 
-      {/* Sheet & Modal Containers */}
-      <NewProjectSheet isOpen={isNewOpen} onClose={() => setIsNewOpen(false)} />
-      <ImportProjectSheet isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
-      <GitHubImportModal isOpen={isGitHubImportOpen} onClose={() => setIsGitHubImportOpen(false)} />
-      <PublishModal isOpen={isPublishOpen} onClose={() => setIsPublishOpen(false)} />
-    </div>
+          {/* Sheet & Modal Containers */}
+          <NewProjectSheet isOpen={isNewOpen} onClose={() => setIsNewOpen(false)} />
+          <ImportProjectSheet isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
+          <GitHubImportModal isOpen={isGitHubImportOpen} onClose={() => setIsGitHubImportOpen(false)} />
+          <PublishModal isOpen={isPublishOpen} onClose={() => setIsPublishOpen(false)} />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
